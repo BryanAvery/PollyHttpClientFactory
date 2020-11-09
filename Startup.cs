@@ -23,7 +23,7 @@ namespace PollyHttpClientFactory
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services, IMemoryCache memoryCache)
+        public void ConfigureServices(IServiceCollection services)
         {
             IPolicyRegistry<string> registry = services.AddPolicyRegistry();
 
@@ -59,7 +59,7 @@ namespace PollyHttpClientFactory
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMemoryCache memoryCache)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -78,7 +78,8 @@ namespace PollyHttpClientFactory
             });
         }
 
-        private IAsyncPolicy<HttpResponseMessage> PolicySelector(IReadOnlyPolicyRegistry<string> policyRegistry, HttpRequestMessage httpRequestMessage)
+        private IAsyncPolicy<HttpResponseMessage> PolicySelector(IReadOnlyPolicyRegistry<string> policyRegistry, 
+            HttpRequestMessage httpRequestMessage)
         {
             if (httpRequestMessage.Method == HttpMethod.Get)
             {
