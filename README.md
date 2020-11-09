@@ -1,0 +1,2 @@
+# PollyHttpClientFactory
+FAULT TOLERANCE USING POLLY
