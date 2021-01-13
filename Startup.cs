@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -45,10 +44,6 @@ namespace PollyHttpClientFactory
                 .BulkheadAsync<HttpResponseMessage>(2, 4, onBulkheadRejectedAsync: OnBulkheadRejectedAsync);
             registry.Add("BulkheadIsolationPolicy", bulkheadIsolationPolicy);
 
-            IAsyncPolicy<HttpResponseMessage> bulkHeadPolicy = Policy
-                .BulkheadAsync<HttpResponseMessage>(2, 4, onBulkheadRejectedAsync: OnBulkheadRejectedAsync);
-            registry.Add("BulkHeadPolicy", bulkheadIsolationPolicy);
-
             services.AddHttpClient("RemoteServer", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:44379/api/");
@@ -78,12 +73,16 @@ namespace PollyHttpClientFactory
             });
         }
 
-        private IAsyncPolicy<HttpResponseMessage> PolicySelector(IReadOnlyPolicyRegistry<string> policyRegistry, 
+        private IAsyncPolicy<HttpResponseMessage> PolicySelector(IReadOnlyPolicyRegistry<string> policyRegistry,
             HttpRequestMessage httpRequestMessage)
         {
             if (httpRequestMessage.Method == HttpMethod.Get)
             {
-                return policyRegistry.Get<IAsyncPolicy<HttpResponseMessage>>("SimpleWaitAndRetryPolicy");
+                var policy = Policy.WrapAsync(
+                    policyRegistry.Get<IAsyncPolicy<HttpResponseMessage>>("BulkheadIsolationPolicy"),
+                    policyRegistry.Get<IAsyncPolicy<HttpResponseMessage>>("SimpleWaitAndRetryPolicy"));
+
+                return policy;
             }
             else if (httpRequestMessage.Method == HttpMethod.Post)
             {

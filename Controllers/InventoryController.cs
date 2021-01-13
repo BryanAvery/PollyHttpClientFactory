@@ -15,12 +15,12 @@ namespace PollyHttpClientFactory.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(int id)
         {
-            await Task.Delay(100);// simulate some data by delaying for 100 milliseconds 
+            await Task.Delay(10000);// simulate some data by delaying for 10 seconds 
             _getRequestCount++;
 
             if (_getRequestCount % 4 == 0) // only one of out four requests will succeed
             {
-                return Ok(15);
+                return Ok(_getRequestCount);
             }
 
             return StatusCode((int)HttpStatusCode.InternalServerError, "Something went wrong when getting.");
